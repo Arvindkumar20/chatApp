@@ -119,12 +119,35 @@
         .chat-box::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
+
+        #users {
+            color: #1ec31e;
+            font-size: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        #welcome {
+            color: #1ec31e;
+            font-size: 20px;
+            text-align: center;
+            display: flex;
+        }
+        #error{
+            color: red;
+            font-size: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
     <div class="chat-container">
-        <div class="chat-header">Chat Application</div>
+        <div class="chat-header">Chat Application </div>
+        <span id="users"></span>
+        <span id="error"></span>
+        <span id="welcome"></span>
         <div class="chat-box" id="chat-box">
             <!-- Messages will be displayed here -->
         </div>
@@ -138,7 +161,10 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-
+        let error=document.getElementById('error');
+socket.on('connect_failed',()=>{
+error.innerText='Your connection is lost';
+})
         // Listen for incoming messages
         socket.on('message', (data) => {
             const chatBox = document.getElementById('chat-box');
@@ -148,7 +174,7 @@
             chatBox.appendChild(messageElement);
             chatBox.scrollTop = chatBox.scrollHeight;
         });
-
+        //send message 
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const messageText = messageInput.value.trim();
@@ -172,6 +198,64 @@
                 sendMessage();
             }
         });
+
+        //show users here 
+        let user = document.getElementById('users');
+        let welcome = document.getElementById('welcome');
+        socket.on('user', (users) => {
+            console.log(users);
+            user.style.display = 'block'
+            user.innerText = `${users} users connected`
+            setTimeout(() => {
+                user.style.display = 'none'
+            }, 3000);
+        });
+
+
+        // show welcome message here 
+        socket.on('welcome', message => {
+            console.log(message.message);
+            welcome.style.display = 'block'
+            welcome.innerText = `${message.message} `
+            setTimeout(() => {
+                welcome.style.display = 'none'
+            }, 3000);
+
+        })
+
+
+        // namespace handling on frontend
+        const chat = io("/chat");
+        chat.on('chat', message => {
+            console.log(message.message);
+            welcome.style.display = 'block'
+            welcome.innerText = `${message.message} `
+            setTimeout(() => {
+                welcome.style.display = 'none'
+            }, 3000);
+
+        })
+
+        // namespace handling on frontend
+        const room = io("/room");
+        room.on('chat', message => {
+            console.log(message.message);
+            welcome.style.display = 'block'
+            welcome.innerText = `${message.message} `
+            setTimeout(() => {
+                welcome.style.display = 'none'
+            }, 3000);
+
+        })
+        room.on('user', (users) => {
+            console.log(users);
+            user.style.display = 'block'
+            user.innerText = `${users} users connected`
+            setTimeout(() => {
+                user.style.display = 'none'
+            }, 3000);
+        });
+
     </script>
 </body>
 
